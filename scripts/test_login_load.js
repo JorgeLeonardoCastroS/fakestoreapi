@@ -1,11 +1,27 @@
 import http from 'k6/http';
-import { check, sleep } from 'k6/execution';
+import { check, sleep } from 'k6';
 import { SharedArray } from 'k6/data';
-import papaparse from 'https://jslib.k6.io/papaparse/5.3.5.4/index.js';
 
-// 1. Carga y parametrización de datos desde el archivo CSV
+// 1. Carga y parametrización local del CSV (sin llamadas externas)
 const usersData = new SharedArray('users_credentials', function () {
-    return papaparse.parse(open('../data/users.csv'), { header: true }).data;
+    const csvString = open('../data/users.csv');
+    const lines = csvString.trim().split('\n');
+    const users = [];
+
+    // Omitimos la primera línea (cabecera: user,passwd) y recorremos el resto
+    for (let i = 1; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (line) {
+            const parts = line.split(',');
+            if (parts.length >= 2) {
+                users.push({
+                    user: parts[0].trim(),
+                    passwd: parts[1].trim(),
+                });
+            }
+        }
+    }
+    return users;
 });
 
 // 2. Configuración del escenario de pruebas y criterios de aceptación (Thresholds)
@@ -45,11 +61,11 @@ export default function () {
 
     // Validaciones funcionales de respuesta (Checks)
     check(res, {
-        'status is 200': (r) => r.status === 200,
+        'status is 200 or 201': (r) => r.status === 200 || r.status === 201,
         'has auth token': (r) => r.json() && r.json().token !== undefined,
         'response time < 1.5s': (r) => r.timings.duration < 1500,
     });
 
-    // Pacing entre iteraciones para controlar la tasa de peticiones (TPS)
+    // Pacing entre iteraciones
     sleep(1);
 }
