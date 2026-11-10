@@ -1,0 +1,17 @@
+================================================================================
+INFORME DE HALLAZGOS Y CONCLUSIONES - PRUEBA DE CARGA FAKESTORE API (/auth/login)
+HERRAMIENTA: k6
+AUTOR: Jorge Leonardo Castro Salazar
+================================================================================
+
+1. CUMPLIMIENTO DE CRITERIOS Y SLAs
+- Tasa de Transacciones (TPS): El escenario diseñado con 25 Usuarios Virtuales (VUs) en k6 logró superar la meta requerida de 20 TPS de forma constante durante la fase pico de la ejecución.
+- Tiempos de Respuesta: El percentil 95 (p95) de la métrica `http_req_duration` se mantuvo por debajo del umbral tolerado de 1.5 segundos (1500 ms).
+- Tasa de Error: La métrica `http_req_failed` registró un porcentaje de fallos inferior al límite máximo permitido del 3%, demostrando la estabilidad del servicio bajo el nivel de concurrencia evaluado.
+
+2. PARAMETRIZACIÓN Y DATOS DE PRUEBA
+- Se implementó exitosamente la lectura del archivo `users.csv` mediante la librería `SharedArray` de k6, garantizando la distribución aleatoria y concurrente de usuarios (`donero`, `kevinryan`, `johnd`, `derek`, `mor_2314`) sin generar sobrecarga adicional en memoria durante la ejecución.
+
+3. CONCLUSIONES Y RECOMENDACIONES
+- El endpoint `/auth/login` muestra un comportamiento estable para cargas moderadas de hasta 25 VUs concurrentes.
+- Se recomienda realizar pruebas de estrés adicionales (Stress Testing / Spike Testing) para determinar el punto de quiebre (*Break point*) de la infraestructura ante aumentos drásticos e inesperados de tráfico.
